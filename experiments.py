@@ -54,6 +54,8 @@ def experiments():
     training = Training()
     loss_fn, optimizer, scheduler = training.optimizers(custom_model=model, train_loader=train_loader)
 
+    #sanity_check(train_loader, device, model, optimizer, loss_fn)
+
     print(model.classifier)
     print("Training head only, backbone frozen")
     for epoch in range(config.EPOCHS):
@@ -114,6 +116,36 @@ def experiments():
     # Save the model after training and testing
     torch.save(model.state_dict(), "fine_tuned_model.pth")
     print("Model saved as custom_model.pth")
+
+
+def sanity_check(train_loader, device, model, optimizer, loss_fn):
+    """
+    Check whether the model is being trained or not on 10 images.
+    It's expected that the model will be overfitted
+    """
+    small_X, small_y = next(iter(train_loader))
+    small_X, small_y = small_X[:10].to(device), small_y[:10].to(device)
+
+    # Training model on few images to see whether model, optimizers are working
+    print("=== Overfit sanity check ===")
+    model.train()
+    for i in range(20):
+        optimizer.zero_grad()
+        logits = model(small_X)
+        loss = loss_fn(logits, small_y)
+        loss.backward()
+        optimizer.step()
+        if (i+1) % 5 == 0:
+            print(f"iter {i+1:2d} — loss: {loss.item():.4f}")
+
+    print("=== End overfit check ===\n")
+
+    # Checking the accuracy whether it's really learning images
+    model.eval()
+    with torch.no_grad():
+        logits = model(small_X)
+        preds  = logits.argmax(dim=1)
+    print("Overfit accuracy:", (preds == small_y).float().mean().item())
 
 if __name__ == "__main__":
     experiments()
