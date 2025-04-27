@@ -6,19 +6,20 @@ from src import config
 
 class Training:
 
-    # TODO: Scheduler never used, we need to use it
     def __init__(self):
-        pass
+        self.epochs = config.EPOCHS
+        self.learning_rate = config.LEARNING_RATE
+        self.batch_size = config.BATCH_SIZE
 
     def optimizers(self, custom_model, train_loader):
         loss_fn = nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(params = custom_model.parameters(), lr = 0.01)
+        optimizer = torch.optim.SGD(params = custom_model.parameters(), lr = self.learning_rate)
         # learning rate scheduler
-        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.1, steps_per_epoch=len(train_loader), epochs=config.EPOCHS)
+        scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=0.1, steps_per_epoch=len(train_loader), epochs=self.epochs)
 
         return loss_fn, optimizer, scheduler
 
-    def train_loop(train_loader, model, loss_fn, optimizer, device):
+    def train_loop(self, train_loader, model, loss_fn, optimizer, scheduler, device):
 
         model.train()
 
@@ -37,7 +38,8 @@ class Training:
 
             # backpropagation
             loss.backward()
-            optimizer.step()
+            optimizer.step() # optimize metrics per batch
+            scheduler.step() # call scheduler per batch
 
             # accumulate training loss and accuracy
             total_loss += loss.item() * X.size(0)
@@ -50,7 +52,7 @@ class Training:
         return average_loss, accuracy
 
 
-    def test_loop(validation_loader, model, loss_fn, description, device):
+    def test_loop(self, validation_loader, model, loss_fn, description, device):
 
         model.eval()
 
