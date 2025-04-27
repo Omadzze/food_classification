@@ -1,3 +1,4 @@
+import json
 import os
 
 import torch
@@ -38,7 +39,7 @@ def experiments():
     model.classifier[3] = nn.Linear(in_features, config.NUM_CLASSES)
     model.to(device)
 
-    #train classifer and freeze other layers
+    # train head, freeze layers
     for p in model.features.parameters():
         p.requires_grad = False
 
@@ -77,9 +78,10 @@ def experiments():
 
         if epoch + 1 == config.UNFREEZE_EPOCHS:
             print("Unfreezing last backbone blocks at epoch {}".format(epoch+1))
-            for name, p in model.features.named_parameters():
-                if "stage4" in name or "stage5" in name:
-                    p.requires_grad = True
+            for name, param in model.features.named_parameters():
+                block_idx = int(name.split('.')[0])
+                if block_idx >= config.UNFREEZE_BLOCK:
+                    param.requires_grad = True
 
                     optimizer = torch.optim.SGD(
                         filter(lambda p: p.requires_grad, model.parameters()),
