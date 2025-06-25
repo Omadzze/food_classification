@@ -54,8 +54,6 @@ food_classification/
 └── README.md
 ```
 
----
-
 ## Results Snapshot
 
 | Model                | Accuracy. |
