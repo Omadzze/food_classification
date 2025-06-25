@@ -1,0 +1,13 @@
+name: food_classification
+channels:
+  - conda-forge
+  - https://conda.anaconda.org/gurobi
+  - https://repo.anaconda.com/pkgs/main
+  - https://repo.anaconda.com/pkgs/r
+dependencies:
+  - python=3.11
+  - tqdm
+  - conda-forge::wandb
+  - fastapi
+  - notebook
+prefix: /opt/miniconda3/envs/food_classification
